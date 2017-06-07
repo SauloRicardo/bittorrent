@@ -9,7 +9,7 @@ import java.util.List;
  * classe do tracker - servidor udp que recebera requisicao sempre que um par
  * quer entrar para um enxame
  */
-public class Tracker
+public class Tracker implements Runnable
 {
     private String ip;
     private int port;
@@ -21,7 +21,7 @@ public class Tracker
     Tracker(int port) throws Exception
     {
         socket = new DatagramSocket(port);
-        this.ip = InetAddress.getLocalHost().getHostAddress();
+        this.ip = Utils.getIpAdrress();
         this.port = port;
         this.listaIps = new ArrayList<>();
         this.bufferEntrada = new byte[2048];
@@ -53,11 +53,9 @@ public class Tracker
         return socket;
     }
 
-    public void adicionarPar(InetAddress end, int port)
+    public void adicionarPar(InetAddress end)
     {
-        String add = "";
-        add += end.getHostAddress();
-        add += "-"+port;
+        String add = end.getHostAddress();
 
         if(!this.listaIps.contains(add))
             this.listaIps.add(add);
@@ -89,13 +87,12 @@ public class Tracker
             //fica na espera de um pedido
             socket.receive(request);
 
-            System.out.println("Recebeu conexao");
-
             InetAddress endCliente = request.getAddress();
             int portCliente = request.getPort();
 
+            System.out.println("Recebeu datagrama de " + endCliente + "-"+portCliente);
+
             String dados = new String(request.getData()).trim();
-            System.out.println("Recebeu: "+dados);
 
             if(dados.equals("GET"))
             {
@@ -105,18 +102,20 @@ public class Tracker
                 resposta = new DatagramPacket(bufferSaida, bufferSaida.length, endCliente, portCliente);
                 socket.send(resposta);
 
-                this.adicionarPar(endCliente, portCliente);
+                System.out.println("Enviou a resposta para "+endCliente+"-"+portCliente);
+
+                this.adicionarPar(endCliente);
             }
 
         }
     }
 
-    public static void main(String[] args)
+    @Override
+    public void run()
     {
         try
         {
-            Tracker tracker = new Tracker(8989);
-            tracker.iniciarTracker();
+            this.iniciarTracker();
         }
         catch(Exception e)
         {
