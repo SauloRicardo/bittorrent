@@ -138,38 +138,4 @@ public class Par
         }
         bf.close();
     }
-
-    public static void main(String[] args)
-    {
-        if(args[0].equals("-i"))
-        {
-            try
-            {
-                Tracker tracker = new Tracker(8989);
-                Thread treadTracker = new Thread(tracker);
-                treadTracker.start();
-
-                Utils.createMetainfo(tracker.getIp(), 8989, args[1], args[2]);
-                Par par = new Par(args[2]);
-                par.getClienteTracker().getIpsEnxame();//nao seta nada como é a semente inicial, serve somente
-                //para colocar seu ip no tracker;
-            }
-            catch(Exception e)
-            {
-                e.printStackTrace();
-            }
-        }
-        else
-        {
-            try
-            {
-                Par par = new Par(args[1]);
-                par.setIpParesConectados(par.getClienteTracker().getIpsEnxame());
-            }
-            catch(Exception e)
-            {
-                e.printStackTrace();
-            }
-        }
-    }
 }

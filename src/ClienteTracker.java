@@ -26,17 +26,18 @@ public class ClienteTracker
         this.bufferEntrada = new byte[2048];
     }
 
-    private void receiveRequest(DatagramPacket packet)
+    private void receiveRequest(DatagramPacket packetSend, DatagramPacket packetReceive)
     {
         try
         {
+            socket.send(packetSend);
             socket.setSoTimeout((15 * (int) Math.pow(2, timeOut))*1000);
-            socket.receive(packet);
+            socket.receive(packetReceive);
         }
         catch(SocketTimeoutException e)
         {
             ClienteTracker.timeOut++;
-            receiveRequest(packet);
+            receiveRequest(packetSend, packetReceive);
         } catch(IOException e)
         {
             e.printStackTrace();
@@ -58,27 +59,13 @@ public class ClienteTracker
 
         DatagramPacket request = new DatagramPacket(this.bufferSaida, this.bufferSaida.length, trackerIp, portTracker);
 
-        this.socket.send(request);
-
         DatagramPacket resposta = new DatagramPacket(this.bufferEntrada, this.bufferEntrada.length);
 
-        receiveRequest(resposta);
+        receiveRequest(request, resposta);
 
         String dadosResposta = new String(resposta.getData()).trim();
 
         return geraListaIps(dadosResposta);
     }
 
-    public static void main(String[] args)
-    {
-        try
-        {
-            ClienteTracker ct = new ClienteTracker("localhost", 8989);
-            System.out.println(ct.getIpsEnxame());
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
 }

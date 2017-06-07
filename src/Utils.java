@@ -1,6 +1,7 @@
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -98,7 +99,7 @@ public class Utils
                 {
                     InetAddress addr = addresses.nextElement();
                     ip = addr.getHostAddress();
-                    if(!ip.contains(":"))
+                    if(addr.getClass() == Inet4Address.class)
                         return ip;
                 }
             }

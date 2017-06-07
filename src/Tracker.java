@@ -90,7 +90,7 @@ public class Tracker implements Runnable
             InetAddress endCliente = request.getAddress();
             int portCliente = request.getPort();
 
-            System.out.println("Recebeu datagrama de " + endCliente + "-"+portCliente);
+            System.out.println("TRACKER - Recebeu datagrama de " + endCliente + "-"+portCliente);
 
             String dados = new String(request.getData()).trim();
 
@@ -102,7 +102,7 @@ public class Tracker implements Runnable
                 resposta = new DatagramPacket(bufferSaida, bufferSaida.length, endCliente, portCliente);
                 socket.send(resposta);
 
-                System.out.println("Enviou a resposta para "+endCliente+"-"+portCliente);
+                System.out.println("TRACKER - Enviou a resposta para "+endCliente+"-"+portCliente);
 
                 this.adicionarPar(endCliente);
             }
