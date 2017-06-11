@@ -19,7 +19,7 @@ import java.util.Formatter;
  */
 public class Utils
 {
-    public static final int PIECE_SIZE = 262144;
+    public static final int PIECE_SIZE = 32768;
 
     public static String byteArray2Hex(final byte[] hash)
     {
@@ -39,9 +39,9 @@ public class Utils
 
     public static byte[] getPiece(byte[] bytes, int begin, int end)
     {
-        if(begin+end > bytes.length)
+        if(end > bytes.length)
             end = bytes.length;
-        byte[] piece = new byte[end-begin];
+        byte[] piece = new byte[Utils.PIECE_SIZE];
         int index = 0;
         for(int i = begin; i < end; i++)
         {
@@ -109,5 +109,36 @@ public class Utils
             throw new RuntimeException(e);
         }
         return ip;
+    }
+
+    public static byte[] integer2bytes(int value)
+    {
+        Formatter formatter = new Formatter();
+        formatter.format("%02x", value);
+        String numeroHex = formatter.toString();
+        String zeros = "";
+
+        for(int i = 0; i < 8-numeroHex.length(); i++)
+        {
+            zeros += "0";
+        }
+
+        return zeros.concat(numeroHex).getBytes();
+    }
+
+    public static int bytes2int(byte[] bytes)
+    {
+        String byteStr = new String(bytes);
+        return Integer.parseInt(byteStr, 16);
+    }
+
+    public static byte[] concat(byte[] a, byte[] b)
+    {
+        int aLen = a.length;
+        int bLen = b.length;
+        byte[] c = new byte[aLen+bLen];
+        System.arraycopy(a, 0, c, 0, aLen);
+        System.arraycopy(b, 0, c, aLen, bLen);
+        return c;
     }
 }

@@ -1,5 +1,9 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +19,8 @@ public class Par
     private List<String> pecasHash;
     private ClienteTracker clienteTracker;
     private String nomeArquivo;
+    private boolean[] pecasOk;
+    private ServerSocket socket;
 
     public List<String> getIpParesConectados()
     {
@@ -87,8 +93,10 @@ public class Par
         return returnStr;
     }
 
-    Par(String metaFileName) throws Exception
+    Par(String metaFileName, int port) throws Exception
     {
+        socket = new ServerSocket(port);
+
         pecas = new ArrayList<>();
         pecasHash = new ArrayList<>();
         this.metaFileName = metaFileName;
@@ -136,6 +144,67 @@ public class Par
                 }
             }
         }
+        this.pecasOk = new boolean[pecasHash.size()];
         bf.close();
+    }
+
+    public void carregaPecasArquivo(String nomeArquivo)
+    {
+        Path path = Paths.get(nomeArquivo);
+        File file = path.toFile();
+
+        try
+        {
+            byte[] bytes = Files.readAllBytes(path);
+            int quantPecas =  (int) Math.ceil(file.length()/(double)Utils.PIECE_SIZE);
+
+            for(int i = 0; i < quantPecas; i++)
+            {
+                byte[] peca = Utils.getPiece(bytes, i*Utils.PIECE_SIZE, (i+1)*Utils.PIECE_SIZE);
+                this.pecas.add(peca);
+                this.pecasOk[i] = true;
+            }
+
+        } catch(IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void esperaConexoes()
+    {
+        Socket conexao;
+        while(true)
+        {
+            try
+            {
+                conexao = this.socket.accept();
+                SessaoPar sessaoPar = new SessaoPar(pecas, pecasHash, pecasOk, conexao, SessaoPar.ENVIA_PEDE);
+                Thread threadSessao = new Thread(sessaoPar);
+                threadSessao.start();
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void conectaComPares()
+    {
+        try
+        {
+            for(String ips : this.ipParesConectados)
+            {
+                Socket socket = new Socket(ips, 6969);
+                SessaoPar sessaoPar = new SessaoPar(pecas, pecasHash, pecasOk, socket, SessaoPar.PEDE_ENVIA);
+                Thread threadSessao = new Thread(sessaoPar);
+                threadSessao.start();
+            }
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 }

@@ -25,11 +25,27 @@ public class Main
                     Utils.createMetainfo(tracker.getIp(), tracker.getPort(), args[1], args[2]);
                     System.out.println("Arquivo "+args[2]+" criado com sucesso");
 
-                    Par par = new Par(args[2]);
+                    Par par = new Par(args[2], 6969);
+                    par.carregaPecasArquivo(args[1]);//caso for o par inicial a peca vai pra lista de pecas
                     par.getClienteTracker().getIpsEnxame();//faz uma requisicao no tracker para ter seu ip
                     //incluido na lista
 
+                    par.esperaConexoes();
                     System.out.println("Sistema semeando com sucesso");
+                }
+                catch(Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+            else
+            {
+                try
+                {
+                    Par par = new Par(args[0], 6868);
+                    par.setIpParesConectados(par.getClienteTracker().getIpsEnxame());
+                    par.conectaComPares();
+                    par.esperaConexoes();
                 }
                 catch(Exception e)
                 {
