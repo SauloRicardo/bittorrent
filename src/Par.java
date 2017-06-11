@@ -21,6 +21,7 @@ public class Par
     private String nomeArquivo;
     private boolean[] pecasOk;
     private ServerSocket socket;
+    private boolean seeder;
 
     public List<String> getIpParesConectados()
     {
@@ -96,6 +97,7 @@ public class Par
     Par(String metaFileName, int port) throws Exception
     {
         socket = new ServerSocket(port);
+        this.seeder = false;
 
         pecas = new ArrayList<>();
         pecasHash = new ArrayList<>();
@@ -145,6 +147,10 @@ public class Par
             }
         }
         this.pecasOk = new boolean[pecasHash.size()];
+        for(int i = 0; i < this.pecasOk.length; i++)
+        {
+            this.pecas.add(new byte[1]);
+        }
         bf.close();
     }
 
@@ -155,6 +161,7 @@ public class Par
 
         try
         {
+            this.pecas.clear();
             byte[] bytes = Files.readAllBytes(path);
             int quantPecas =  (int) Math.ceil(file.length()/(double)Utils.PIECE_SIZE);
 
@@ -164,6 +171,7 @@ public class Par
                 this.pecas.add(peca);
                 this.pecasOk[i] = true;
             }
+            this.seeder = true;
 
         } catch(IOException e)
         {
@@ -179,7 +187,7 @@ public class Par
             try
             {
                 conexao = this.socket.accept();
-                SessaoPar sessaoPar = new SessaoPar(pecas, pecasHash, pecasOk, conexao, SessaoPar.ENVIA_PEDE);
+                SessaoPar sessaoPar = new SessaoPar(pecas, pecasHash, pecasOk, conexao, SessaoPar.ENVIA_PEDE, seeder);
                 Thread threadSessao = new Thread(sessaoPar);
                 threadSessao.start();
             }
@@ -197,7 +205,7 @@ public class Par
             for(String ips : this.ipParesConectados)
             {
                 Socket socket = new Socket(ips, 6969);
-                SessaoPar sessaoPar = new SessaoPar(pecas, pecasHash, pecasOk, socket, SessaoPar.PEDE_ENVIA);
+                SessaoPar sessaoPar = new SessaoPar(pecas, pecasHash, pecasOk, socket, SessaoPar.PEDE_ENVIA, seeder);
                 Thread threadSessao = new Thread(sessaoPar);
                 threadSessao.start();
             }

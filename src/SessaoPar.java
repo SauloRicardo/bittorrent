@@ -4,6 +4,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by arthur on 09/06/17.
@@ -16,17 +17,20 @@ public class SessaoPar implements Runnable
     private Socket socket;
     private boolean[] pecasOk;
     private int opcao;
+    private boolean seeder;
 
     public static int PEDE_ENVIA = 1;
     public static int ENVIA_PEDE = 2;
 
-    SessaoPar(List<byte[]> pecas, List<String> hashs, boolean[] pecasOk, Socket socket, int op) throws Exception
+    SessaoPar(List<byte[]> pecas, List<String> hashs, boolean[] pecasOk, Socket socket,
+              int op, boolean seeder) throws Exception
     {
         this.pecas = pecas;
         this.pecasHash = hashs;
         this.socket = socket;
         this.pecasOk = pecasOk;
         this.opcao = op;
+        this.seeder = seeder;
     }
 
     synchronized private int getPrimeiraPecaFaltante()
@@ -41,14 +45,30 @@ public class SessaoPar implements Runnable
         return -1;
     }
 
+    synchronized private int getRandomPeca()
+    {
+        if(getPrimeiraPecaFaltante() == -1)
+            return -1;
+
+        int valor = ThreadLocalRandom.current().nextInt(0, pecasOk.length);
+
+        while(pecasOk[valor])
+        {
+            valor = ThreadLocalRandom.current().nextInt(0, pecasOk.length);
+        }
+
+        return valor;
+    }
+
     synchronized private void armazenaPeca(byte[] peca, int id) throws Exception
     {
         String sha1Peca = Utils.gerarSHA1(peca);
         if(sha1Peca.equals(this.pecasHash.get(id)))
         {
+            this.pecas.remove(id);
             this.pecas.add(id, peca);
             this.pecasOk[id] = true;
-            System.out.println("PEDE PECA: Recebeu a peca "+id+" em ordem de "+socket.getInetAddress());
+            System.out.println("PEDE PECA: Recebeu a peca "+id+" em ordem de "+socket.getInetAddress()+socket.getPort());
         }
     }
 
@@ -59,7 +79,7 @@ public class SessaoPar implements Runnable
         byte[] bufferEntrada = new byte[Utils.PIECE_SIZE];
         byte[] bufferSaida = new byte[Utils.PIECE_SIZE];
 
-        int pecaPedir = getPrimeiraPecaFaltante();
+        int pecaPedir = getRandomPeca();
         if(pecaPedir != -1)
         {
             String request = "GET\t"+pecaPedir;
