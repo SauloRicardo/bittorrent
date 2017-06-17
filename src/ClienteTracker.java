@@ -31,7 +31,7 @@ public class ClienteTracker
         try
         {
             socket.send(packetSend);
-            socket.setSoTimeout((15 * (int) Math.pow(2, timeOut))*1000);
+            socket.setSoTimeout((15 * (int) Math.pow(2, timeOut))*10);
             socket.receive(packetReceive);
         }
         catch(SocketTimeoutException e)

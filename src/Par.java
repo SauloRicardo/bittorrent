@@ -187,7 +187,8 @@ public class Par
             try
             {
                 conexao = this.socket.accept();
-                SessaoPar sessaoPar = new SessaoPar(pecas, pecasHash, pecasOk, conexao, SessaoPar.ENVIA_PEDE, seeder);
+                SessaoPar sessaoPar = new SessaoPar(pecas, pecasHash, pecasOk, conexao, SessaoPar.ENVIA_PEDE,
+                        seeder, nomeArquivo);
                 Thread threadSessao = new Thread(sessaoPar);
                 threadSessao.start();
             }
@@ -205,7 +206,8 @@ public class Par
             for(String ips : this.ipParesConectados)
             {
                 Socket socket = new Socket(ips, 6969);
-                SessaoPar sessaoPar = new SessaoPar(pecas, pecasHash, pecasOk, socket, SessaoPar.PEDE_ENVIA, seeder);
+                SessaoPar sessaoPar = new SessaoPar(pecas, pecasHash, pecasOk, socket, SessaoPar.PEDE_ENVIA,
+                        seeder, nomeArquivo);
                 Thread threadSessao = new Thread(sessaoPar);
                 threadSessao.start();
             }

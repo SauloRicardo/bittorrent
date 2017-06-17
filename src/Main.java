@@ -42,7 +42,7 @@ public class Main
             {
                 try
                 {
-                    Par par = new Par(args[0], 6868);
+                    Par par = new Par(args[0], 6969);
                     par.setIpParesConectados(par.getClienteTracker().getIpsEnxame());
                     par.conectaComPares();
                     par.esperaConexoes();

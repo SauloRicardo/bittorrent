@@ -1,5 +1,6 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.UTFDataFormatException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Arrays;
@@ -18,12 +19,13 @@ public class SessaoPar implements Runnable
     private boolean[] pecasOk;
     private int opcao;
     private boolean seeder;
+    private String nomeArquivo;
 
     public static int PEDE_ENVIA = 1;
     public static int ENVIA_PEDE = 2;
 
     SessaoPar(List<byte[]> pecas, List<String> hashs, boolean[] pecasOk, Socket socket,
-              int op, boolean seeder) throws Exception
+              int op, boolean seeder, String nomeArquivo) throws Exception
     {
         this.pecas = pecas;
         this.pecasHash = hashs;
@@ -31,6 +33,7 @@ public class SessaoPar implements Runnable
         this.pecasOk = pecasOk;
         this.opcao = op;
         this.seeder = seeder;
+        this.nomeArquivo = nomeArquivo;
     }
 
     synchronized private int getPrimeiraPecaFaltante()
@@ -68,7 +71,7 @@ public class SessaoPar implements Runnable
             this.pecas.remove(id);
             this.pecas.add(id, peca);
             this.pecasOk[id] = true;
-            System.out.println("PEDE PECA: Recebeu a peca "+id+" em ordem de "+socket.getInetAddress()+socket.getPort());
+            System.out.println("PEDE PECA: Recebeu a peca "+id+" em ordem de "+socket.getInetAddress()+" "+socket.getPort());
         }
     }
 
@@ -86,6 +89,8 @@ public class SessaoPar implements Runnable
             //bufferSaida = request.getBytes();
             saida.writeUTF(request);
 
+            System.out.println("PEDE PECA: Pediu a peca "+pecaPedir+" para "+socket.getInetAddress()+" "+socket.getPort());
+
             String resposta;
             entrada.read(bufferEntrada);
             resposta = new String(bufferEntrada).trim();
@@ -101,6 +106,12 @@ public class SessaoPar implements Runnable
         }
         else
         {
+            if(!this.seeder)
+            {
+                Utils.escreveArquivo(nomeArquivo, pecas);
+                seeder = true;
+            }
+
             String request = "NOTPIECE";
             //bufferSaida = request.trim().getBytes();
             saida.writeUTF(request);
@@ -134,7 +145,7 @@ public class SessaoPar implements Runnable
                 bufferSaida = this.pecas.get(peca);
                 //System.out.println("\tVai enviar a peca "+peca+" com tamanho "+bufferSaida.length);
                 saida.write(bufferSaida);
-                System.out.println("ENVIOU A PECA: "+peca);
+                System.out.println("ENVIAPECA: Enviou a peca "+peca+" para "+socket.getInetAddress()+" "+socket.getPort());
             }
             else
             {
@@ -172,6 +183,18 @@ public class SessaoPar implements Runnable
             {
             	System.out.println("Par "+socket.getInetAddress()+" desconectado");
                 break;
+            }
+            catch(UTFDataFormatException e)
+            {
+                try
+                {
+                    DataOutputStream saida = new DataOutputStream(socket.getOutputStream());
+                    saida.write("NOT".getBytes());
+                }
+                catch(Exception e1)
+                {
+                    e1.printStackTrace();
+                }
             }
             catch(Exception e)
             {

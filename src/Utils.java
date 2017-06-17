@@ -1,6 +1,4 @@
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
+import java.io.*;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -12,6 +10,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Enumeration;
 import java.util.Formatter;
+import java.util.List;
 
 /**
  * Created by arthur on 02/06/17.
@@ -140,5 +139,39 @@ public class Utils
         System.arraycopy(a, 0, c, 0, aLen);
         System.arraycopy(b, 0, c, aLen, bLen);
         return c;
+    }
+
+    public static void escreveArquivo(String nomeArquivo, List<byte[]> pecas)
+    {
+        String caminho = nomeArquivo;
+        int cont = 1;
+        Path path = Paths.get(caminho);
+        File file = path.toFile();
+
+        while(file.exists())
+        {
+            caminho = nomeArquivo + "("+cont+")";
+            path = Paths.get(caminho);
+            file = path.toFile();
+
+            cont++;
+        }
+
+        try
+        {
+            FileOutputStream fos = new FileOutputStream(file);
+
+            for(int i = 0; i < pecas.size(); i++)
+            {
+                byte[] peca = pecas.get(i);
+                fos.write(peca);
+            }
+
+            fos.close();
+        } catch(IOException e)
+        {
+            e.printStackTrace();
+        }
+
     }
 }
