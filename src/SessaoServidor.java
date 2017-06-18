@@ -12,14 +12,14 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class SessaoServidor implements Runnable
 {
-    private List<byte[]> pecas;
-    private List<String> pecasHash;
+    private byte[][] pecas;
+    private String[] pecasHash;
     private Socket socket;
     private Conjunto<Integer> pecasFaltantes;
     private Conjunto<Integer> pecasObtidas;
     private Semaphore semaphore;
 
-    SessaoServidor(List<byte[]> pecas, List<String> hash, Socket socket, Conjunto<Integer> pecasFaltantes,
+    SessaoServidor(byte[][] pecas, String[] hash, Socket socket, Conjunto<Integer> pecasFaltantes,
                   Conjunto<Integer> pecasObtidas, Semaphore semaphore)
     {
         this.pecas = pecas;
@@ -60,7 +60,7 @@ public class SessaoServidor implements Runnable
             if(idPeca == -1)
                 envioPeca = new EnvioPeca(-1, new byte[1]);
             else
-                envioPeca = new EnvioPeca(idPeca, pecas.get(idPeca));
+                envioPeca = new EnvioPeca(idPeca, pecas[idPeca]);
 
             saida.writeObject(envioPeca);
             System.out.println("ENVIA PECA: Enviou a peca "+idPeca+" para "+socket.getInetAddress()+" "+socket.getPort());

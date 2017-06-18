@@ -11,8 +11,8 @@ import java.util.concurrent.Semaphore;
  */
 public class SessaoCliente implements Runnable
 {
-    private List<byte[]> pecas;
-    private List<String> pecasHash;
+    private byte[][] pecas;
+    private String[] pecasHash;
     private Socket socket;
     private Conjunto<Integer> pecasFaltantes;
     private Conjunto<Integer> pecasObtidas;
@@ -20,7 +20,7 @@ public class SessaoCliente implements Runnable
     private boolean seeder;
     private String nomeArquivo;
 
-    SessaoCliente(List<byte[]> pecas, List<String> hash, Socket socket, Conjunto<Integer> pecasFaltantes,
+    SessaoCliente(byte[][] pecas, String[] hash, Socket socket, Conjunto<Integer> pecasFaltantes,
                   Conjunto<Integer> pecasObtidas, Semaphore semaphore, boolean seeder, String nomeArquivo)
     {
         this.pecas = pecas;
@@ -36,10 +36,9 @@ public class SessaoCliente implements Runnable
     synchronized private void armazenaPeca(byte[] peca, int id) throws Exception
     {
         String sha1Peca = Utils.gerarSHA1(peca);
-        if(sha1Peca.equals(this.pecasHash.get(id)))
+        if(sha1Peca.equals(this.pecasHash[id]))
         {
-            this.pecas.remove(id);
-            this.pecas.add(id, peca);
+            this.pecas[id] = peca;
             this.pecasFaltantes.remove(id);
             this.pecasObtidas.add(id);
             System.out.println("PEDE PECA: Recebeu a peca "+id+" em ordem de "+socket.getInetAddress()+" "+socket.getPort());

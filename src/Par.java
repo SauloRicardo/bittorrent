@@ -4,7 +4,6 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -15,8 +14,8 @@ import java.util.concurrent.Semaphore;
 public class Par
 {
     private List<String> ipParesConectados;
-    private List<byte[]> pecas;
-    private List<String> pecasHash;
+    private byte[][] pecas;
+    private String[] pecasHash;
     private String metaFileName;
     private ClienteTracker clienteTracker;
     private String nomeArquivo;
@@ -30,8 +29,6 @@ public class Par
         socket = new ServerSocket(port);
         this.seeder = false;
 
-        pecas = new ArrayList<>();
-        pecasHash = new ArrayList<>();
         this.metaFileName = metaFileName;
         this.pecasFaltantes = new Conjunto<>();
         this.pecasObtidas = new Conjunto<>();
@@ -68,22 +65,23 @@ public class Par
             {
                 String pieces = removeTag(linha);
                 int quantPecas = (int) Math.ceil(fileSize/(double)Utils.PIECE_SIZE);
+                this.pecas = new byte[quantPecas][Utils.PIECE_SIZE];
+                this.pecasHash = new String[quantPecas];
 
                 int begin = 0;
                 int end = 40;
                 for(int i = 0; i < quantPecas; i++)
                 {
-                    pecasHash.add(pieces.substring(begin, end));
+                    pecasHash[i] = pieces.substring(begin, end);
                     begin = begin + 40;
                     end = end + 40;
                 }
             }
         }
 
-        for(int i = 0; i < this.pecasHash.size(); i++)
+        for(int i = 0; i < this.pecasHash.length; i++)
         {
             this.pecasFaltantes.add(i);
-            this.pecas.add(new byte[1]);
         }
         bf.close();
     }
@@ -106,14 +104,13 @@ public class Par
 
         try
         {
-            this.pecas.clear();
             byte[] bytes = Files.readAllBytes(path);
             int quantPecas = (int) Math.ceil(file.length()/(double)Utils.PIECE_SIZE);
 
             for(int i = 0; i < quantPecas; i++)
             {
                 byte[] peca = Utils.getPiece(bytes, i*Utils.PIECE_SIZE, (i+1)*Utils.PIECE_SIZE);
-                this.pecas.add(peca);
+                this.pecas[i] = peca;
                 this.pecasFaltantes.remove(i);
                 this.pecasObtidas.add(i);
             }
@@ -205,22 +202,22 @@ public class Par
         this.ipParesConectados = ipParesConectados;
     }
 
-    public List<byte[]> getPecas()
+    public byte[][] getPecas()
     {
         return pecas;
     }
 
-    public void setPecas(List<byte[]> pecas)
+    public void setPecas(byte[][] pecas)
     {
         this.pecas = pecas;
     }
 
-    public List<String> getPecasHash()
+    public String[] getPecasHash()
     {
         return pecasHash;
     }
 
-    public void setPecasHash(List<String> pecasHash)
+    public void setPecasHash(String[] pecasHash)
     {
         this.pecasHash = pecasHash;
     }

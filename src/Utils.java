@@ -141,7 +141,7 @@ public class Utils
         return c;
     }
 
-    public static void escreveArquivo(String nomeArquivo, List<byte[]> pecas)
+    public static void escreveArquivo(String nomeArquivo, byte[][] pecas)
     {
         String caminho = nomeArquivo;
         int cont = 1;
@@ -161,9 +161,9 @@ public class Utils
         {
             FileOutputStream fos = new FileOutputStream(file);
 
-            for(int i = 0; i < pecas.size(); i++)
+            for(int i = 0; i < pecas.length; i++)
             {
-                byte[] peca = pecas.get(i);
+                byte[] peca = pecas[i];
                 fos.write(peca);
             }
 
