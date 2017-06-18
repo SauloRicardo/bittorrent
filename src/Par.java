@@ -148,7 +148,7 @@ public class Par
             }
 
             SessaoCliente sessaoCliente = new SessaoCliente(pecas, pecasHash, socket,
-                    pecasFaltantes, pecasObtidas, semaphore, seeder);
+                    pecasFaltantes, pecasObtidas, semaphore, seeder, nomeArquivo);
             Thread threadCliente = new Thread(sessaoCliente);
             threadCliente.start();
         }
@@ -172,7 +172,7 @@ public class Par
                 Semaphore semaphore = new Semaphore(1, true);
 
                 SessaoCliente sessaoCliente = new SessaoCliente(pecas, pecasHash, conexao,
-                        pecasFaltantes, pecasObtidas, semaphore, seeder);
+                        pecasFaltantes, pecasObtidas, semaphore, seeder, nomeArquivo);
                 Thread threadCliente = new Thread(sessaoCliente);
                 threadCliente.start();
 

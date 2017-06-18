@@ -17,9 +17,10 @@ public class SessaoCliente implements Runnable
     private Conjunto<Integer> pecasObtidas;
     private Semaphore semaphore;
     private boolean seeder;
+    private String nomeArquivo;
 
     SessaoCliente(List<byte[]> pecas, List<String> hash, Socket socket, Conjunto<Integer> pecasFaltantes,
-                  Conjunto<Integer> pecasObtidas, Semaphore semaphore, boolean seeder)
+                  Conjunto<Integer> pecasObtidas, Semaphore semaphore, boolean seeder, String nomeArquivo)
     {
         this.pecas = pecas;
         this.pecasHash = hash;
@@ -28,6 +29,7 @@ public class SessaoCliente implements Runnable
         this.pecasObtidas = pecasObtidas;
         this.semaphore = semaphore;
         this.seeder = seeder;
+        this.nomeArquivo = nomeArquivo;
     }
 
     synchronized private void armazenaPeca(byte[] peca, int id) throws Exception
@@ -60,8 +62,11 @@ public class SessaoCliente implements Runnable
             if(peca.getIdPeca() != -1)
                 armazenaPeca(peca.getPeca(), peca.getIdPeca());
 
-            if(pecasFaltantes.isEmpty())
+            if(pecasFaltantes.isEmpty() && !seeder)
+            {
+                Utils.escreveArquivo(nomeArquivo, pecas);
                 seeder = true;
+            }
         }
     }
 
