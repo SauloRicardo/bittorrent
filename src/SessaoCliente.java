@@ -1,6 +1,7 @@
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -79,6 +80,12 @@ public class SessaoCliente implements Runnable
             {
                 semaphore.acquire();
                 pedePeca();
+            }
+            catch(SocketException e)
+            {
+                System.out.println("Par "+socket.getInetAddress()+"-"+socket.getPort()+" desconectado");
+                semaphore.release();
+                break;
             }
             catch(Exception e)
             {

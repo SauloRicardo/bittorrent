@@ -53,9 +53,10 @@ public class Tracker implements Runnable
         return socket;
     }
 
-    public void adicionarPar(InetAddress end)
+    public void adicionarPar(InetAddress end, int port)
     {
         String add = end.getHostAddress();
+        add = add + "-" + port;
 
         if(!this.listaIps.contains(add))
             this.listaIps.add(add);
@@ -94,7 +95,7 @@ public class Tracker implements Runnable
 
             String dados = new String(request.getData()).trim();
 
-            if(dados.equals("GET"))
+            if(dados.contains("GET"))
             {
                 String enviar = this.getIps();
                 bufferSaida = enviar.getBytes();
@@ -104,7 +105,9 @@ public class Tracker implements Runnable
 
                 System.out.println("TRACKER - Enviou a resposta para "+endCliente+"-"+portCliente);
 
-                this.adicionarPar(endCliente);
+                int portPar = Integer.parseInt(dados.split("\t")[1]);
+
+                this.adicionarPar(endCliente, portPar);
             }
 
         }

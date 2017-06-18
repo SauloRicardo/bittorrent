@@ -1,6 +1,7 @@
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
@@ -57,7 +58,7 @@ public class SessaoServidor implements Runnable
             EnvioPeca envioPeca;
 
             if(idPeca == -1)
-                envioPeca = new EnvioPeca(-1, null);
+                envioPeca = new EnvioPeca(-1, new byte[1]);
             else
                 envioPeca = new EnvioPeca(idPeca, pecas.get(idPeca));
 
@@ -75,6 +76,12 @@ public class SessaoServidor implements Runnable
             {
                 semaphore.acquire();
                 enviaPeca();
+            }
+            catch(SocketException e)
+            {
+                System.out.println("Par "+socket.getInetAddress()+"-"+socket.getPort()+" desconectado");
+                semaphore.release();
+                break;
             }
             catch(Exception e)
             {

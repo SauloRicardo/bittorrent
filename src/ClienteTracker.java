@@ -16,14 +16,16 @@ public class ClienteTracker
     private byte[] bufferEntrada;
     private byte[] bufferSaida;
     private static int timeOut;
+    private int portPar;
 
-    ClienteTracker(String ipTracker, int portTracker) throws Exception
+    ClienteTracker(String ipTracker, int portTracker, int portPar) throws Exception
     {
         this.trackerIp = InetAddress.getByName(ipTracker);
         this.portTracker = portTracker;
         this.socket = new DatagramSocket();
         ClienteTracker.timeOut = 0;
         this.bufferEntrada = new byte[2048];
+        this.portPar = portPar;
     }
 
     private void receiveRequest(DatagramPacket packetSend, DatagramPacket packetReceive)
@@ -54,7 +56,7 @@ public class ClienteTracker
 
     public List<String> getIpsEnxame() throws Exception
     {
-        String dados = "GET";
+        String dados = "GET\t"+portPar;
         this.bufferSaida = dados.getBytes();
 
         DatagramPacket request = new DatagramPacket(this.bufferSaida, this.bufferSaida.length, trackerIp, portTracker);

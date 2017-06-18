@@ -54,7 +54,7 @@ public class Par
                 String[] split = linha.split(":")[1].split("-");
                 ipTracker = split[0].trim();
                 portTracker = Integer.parseInt(split[1].trim());
-                this.clienteTracker = new ClienteTracker(ipTracker, portTracker);
+                this.clienteTracker = new ClienteTracker(ipTracker, portTracker, port);
             }
             else if(idValor.equals("name"))//pega o nome do arquivo que será criado
             {
@@ -129,7 +129,10 @@ public class Par
     {
         for(String ip : this.ipParesConectados)
         {
-            Socket socket = new Socket(ip, 6969);
+            String ipEnd = ip.split("-")[0];
+            int port = Integer.parseInt(ip.split("-")[1]);
+
+            Socket socket = new Socket(ipEnd, port);
 
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
             DataInputStream dis = new DataInputStream(socket.getInputStream());

@@ -1,6 +1,6 @@
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * Created by arthur on 17/06/17.
@@ -12,7 +12,7 @@ public class Conjunto<T> implements Serializable
 
     Conjunto()
     {
-        this.set = new HashSet<>();
+        this.set = new ConcurrentSkipListSet<>();
     }
 
     public boolean add(T value)
