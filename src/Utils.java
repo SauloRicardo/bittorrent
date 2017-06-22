@@ -10,7 +10,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Enumeration;
 import java.util.Formatter;
-import java.util.List;
 
 /**
  * Created by arthur on 02/06/17.
@@ -19,6 +18,10 @@ import java.util.List;
 public class Utils
 {
     public static final int PIECE_SIZE = 32768;
+    public static final short GET_PIECE = 0;
+    public static final short SET_PIECE = 1;
+    public static final int PIECE_FALTANTE = -1;
+    public static final int FECHAR_SESSA0 = -2;
 
     public static String byteArray2Hex(final byte[] hash)
     {
@@ -40,13 +43,14 @@ public class Utils
     {
         if(end > bytes.length)
             end = bytes.length;
-        byte[] piece = new byte[Utils.PIECE_SIZE];
+        byte[] piece = new byte[end-begin];
         int index = 0;
-        for(int i = begin; i < end; i++)
+        /*for(int i = begin; i < end; i++)
         {
             piece[index] = bytes[i];
             index++;
-        }
+        }*/
+        System.arraycopy(bytes, begin, piece, 0, piece.length);
         return piece;
     }
 
@@ -68,6 +72,7 @@ public class Utils
         String hashs = "";
         int inicio = 0;
         int fim = Utils.PIECE_SIZE;
+        int quantPecas = 0;
 
         while(inicio < bytes.length)
         {
@@ -75,6 +80,7 @@ public class Utils
             inicio += Utils.PIECE_SIZE;
             fim += Utils.PIECE_SIZE;
             hashs = hashs + Utils.gerarSHA1(piece);
+            quantPecas++;
         }
         fileOut.append("pieces: "+hashs+"\n");
         fileOut.close();

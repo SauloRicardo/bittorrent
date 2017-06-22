@@ -2,7 +2,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.List;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -17,11 +16,19 @@ public class SessaoCliente implements Runnable
     private Conjunto<Integer> pecasFaltantes;
     private Conjunto<Integer> pecasObtidas;
     private Semaphore semaphore;
-    private boolean seeder;
+    private Boolean seeder;
     private String nomeArquivo;
+    private boolean arquivoEscrito;
+
+    private ObjectOutputStream saida;
+    private ObjectInputStream entrada;
+
+    private int timeOutReevio;
+    private boolean terminar;
 
     SessaoCliente(byte[][] pecas, String[] hash, Socket socket, Conjunto<Integer> pecasFaltantes,
-                  Conjunto<Integer> pecasObtidas, Semaphore semaphore, boolean seeder, String nomeArquivo)
+                  Conjunto<Integer> pecasObtidas, Semaphore semaphore, boolean seeder, String nomeArquivo,
+                  ObjectOutputStream saida, ObjectInputStream entrada)
     {
         this.pecas = pecas;
         this.pecasHash = hash;
@@ -31,6 +38,13 @@ public class SessaoCliente implements Runnable
         this.semaphore = semaphore;
         this.seeder = seeder;
         this.nomeArquivo = nomeArquivo;
+        this.arquivoEscrito = false;
+
+        this.entrada = entrada;
+        this.saida = saida;
+
+        this.timeOutReevio = 0;
+        this.terminar = false;
     }
 
     synchronized private void armazenaPeca(byte[] peca, int id) throws Exception
@@ -43,14 +57,24 @@ public class SessaoCliente implements Runnable
             this.pecasObtidas.add(id);
             System.out.println("PEDE PECA: Recebeu a peca "+id+" em ordem de "+socket.getInetAddress()+" "+socket.getPort());
         }
+        else
+        {
+            System.out.println("PEDE PECA: Falha ao pegar a peca");
+        }
     }
 
     synchronized private void pedePeca() throws Exception
     {
-        ObjectOutputStream saida = new ObjectOutputStream(socket.getOutputStream());
-        ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
+        PedidoPeca pedidoPeca;
 
-        PedidoPeca pedidoPeca = new PedidoPeca("GET", pecasFaltantes);
+        if(timeOutReevio == 0)
+        {
+            pedidoPeca = new PedidoPeca(Utils.SET_PIECE, pecasFaltantes);
+            timeOutReevio = 50;
+            System.out.println("\t[DEBUG CLIENTE]: Reenviou a lista de pecas");
+        }
+        else
+            pedidoPeca = new PedidoPeca(Utils.GET_PIECE, null);
 
         saida.writeObject(pedidoPeca);
 
@@ -59,14 +83,24 @@ public class SessaoCliente implements Runnable
         {
             EnvioPeca peca = (EnvioPeca) resposta;
 
-            if(peca.getIdPeca() != -1)
+            if(peca.getIdPeca() >= 0)
                 armazenaPeca(peca.getPeca(), peca.getIdPeca());
+            else if(peca.getIdPeca() == Utils.FECHAR_SESSA0)
+            {
+                terminar = true;
+            }
 
-            if(pecasFaltantes.isEmpty() && !seeder)
+            if(pecasFaltantes.isEmpty() && !seeder  && !arquivoEscrito)
             {
                 Utils.escreveArquivo(nomeArquivo, pecas);
                 seeder = true;
+                arquivoEscrito = true;
             }
+            timeOutReevio--;
+        }
+        else
+        {
+            System.out.println("\t\t[DEBUG CLIENTE]: Classe Inválida - Recebido: "+resposta.getClass());
         }
     }
 
@@ -77,6 +111,11 @@ public class SessaoCliente implements Runnable
         {
             try
             {
+                if(terminar)
+                {
+                    System.out.println("TERMINANDO CLIENTE.......");
+                    break;
+                }
                 semaphore.acquire();
                 pedePeca();
             }

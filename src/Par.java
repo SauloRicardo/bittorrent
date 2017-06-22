@@ -22,7 +22,7 @@ public class Par
     private Conjunto<Integer> pecasFaltantes;
     private Conjunto<Integer> pecasObtidas;
     private ServerSocket socket;
-    private boolean seeder;
+    private Boolean seeder;
 
     Par(String metaFileName, int port) throws Exception
     {
@@ -124,34 +124,8 @@ public class Par
 
     public void conectaComPares() throws Exception
     {
-        for(String ip : this.ipParesConectados)
-        {
-            String ipEnd = ip.split("-")[0];
-            int port = Integer.parseInt(ip.split("-")[1]);
-
-            Socket socket = new Socket(ipEnd, port);
-
-            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-            DataInputStream dis = new DataInputStream(socket.getInputStream());
-
-            boolean parSemente = dis.readBoolean();
-            dos.writeBoolean(seeder);
-
-            Semaphore semaphore = new Semaphore(1, true);
-
-            if(!parSemente)
-            {
-                SessaoServidor sessaoServidor = new SessaoServidor(pecas, pecasHash, socket,
-                        pecasFaltantes, pecasObtidas, semaphore);
-                Thread threadServidor = new Thread(sessaoServidor);
-                threadServidor.start();
-            }
-
-            SessaoCliente sessaoCliente = new SessaoCliente(pecas, pecasHash, socket,
-                    pecasFaltantes, pecasObtidas, semaphore, seeder, nomeArquivo);
-            Thread threadCliente = new Thread(sessaoCliente);
-            threadCliente.start();
-        }
+        ConectPeers parConect = new ConectPeers();
+        parConect.start();
     }
 
     public void esperaConexoes()
@@ -163,27 +137,23 @@ public class Par
             {
                 conexao = socket.accept();
 
-                DataOutputStream dos = new DataOutputStream(conexao.getOutputStream());
-                DataInputStream dis = new DataInputStream(conexao.getInputStream());
+                ObjectOutputStream dos = new ObjectOutputStream(conexao.getOutputStream());
+                ObjectInputStream dis = new ObjectInputStream(conexao.getInputStream());
 
-                dos.writeBoolean(seeder);
-                boolean parSemente = dis.readBoolean();
 
                 Semaphore semaphore = new Semaphore(1, true);
 
                 SessaoCliente sessaoCliente = new SessaoCliente(pecas, pecasHash, conexao,
-                        pecasFaltantes, pecasObtidas, semaphore, seeder, nomeArquivo);
+                        pecasFaltantes, pecasObtidas, semaphore, seeder, nomeArquivo, dos, dis);
                 Thread threadCliente = new Thread(sessaoCliente);
+                threadCliente.setPriority(3);
                 threadCliente.start();
 
-                if(!parSemente)
-                {
-                    SessaoServidor sessaoServidor = new SessaoServidor(pecas, pecasHash, conexao,
-                            pecasFaltantes, pecasObtidas, semaphore);
-                    Thread threadServidor = new Thread(sessaoServidor);
-                    threadServidor.start();
+                SessaoServidor sessaoServidor = new SessaoServidor(pecas, pecasHash, conexao,
+                        pecasObtidas, semaphore, dos, dis);
+                Thread threadServidor = new Thread(sessaoServidor);
+                threadServidor.start();
 
-                }
             }
             catch(Exception e)
             {
@@ -280,6 +250,44 @@ public class Par
     public void setSeeder(boolean seeder)
     {
         this.seeder = seeder;
+    }
+
+    class ConectPeers extends Thread
+    {
+        @Override
+        public void run()
+        {
+            for(String ip : ipParesConectados)
+            {
+                try
+                {
+                    String ipEnd = ip.split("-")[0];
+                    int port = Integer.parseInt(ip.split("-")[1]);
+
+                    Socket socket = new Socket(ipEnd, port);
+
+                    ObjectOutputStream dos = new ObjectOutputStream(socket.getOutputStream());
+                    ObjectInputStream dis = new ObjectInputStream(socket.getInputStream());
+
+                    Semaphore semaphore = new Semaphore(1, true);
+
+                    SessaoServidor sessaoServidor = new SessaoServidor(pecas, pecasHash, socket,
+                            pecasObtidas, semaphore, dos, dis);
+                    Thread threadServidor = new Thread(sessaoServidor);
+                    threadServidor.setPriority(3);
+                    threadServidor.start();
+
+                    SessaoCliente sessaoCliente = new SessaoCliente(pecas, pecasHash, socket,
+                            pecasFaltantes, pecasObtidas, semaphore, seeder, nomeArquivo, dos, dis);
+                    Thread threadCliente = new Thread(sessaoCliente);
+                    threadCliente.start();
+                }
+                catch(Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 }

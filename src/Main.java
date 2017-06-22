@@ -19,6 +19,7 @@ public class Main
                 {
                     Tracker tracker = new Tracker(8989);
                     Thread threadTracker = new Thread(tracker);
+                    threadTracker.setPriority(Thread.MIN_PRIORITY);
                     threadTracker.start();
                     System.out.println("O Tracker responsável por este torrent foi criado");
 
@@ -26,23 +27,28 @@ public class Main
                     System.out.println("Arquivo "+args[2]+" criado com sucesso");
 
                     Par par = new Par(args[2], 6969);
+
+                    createShutDownHook(par);
+
                     par.carregaPecasArquivo(args[1]);//caso for o par inicial a peca vai pra lista de pecas
                     par.getClienteTracker().getIpsEnxame();//faz uma requisicao no tracker para ter seu ip
                     //incluido na lista
 
                     par.esperaConexoes();
-                    System.out.println("Sistema semeando com sucesso");
                 }
                 catch(Exception e)
                 {
                     e.printStackTrace();
                 }
             }
-            else
+            else if(args.length == 1)
             {
                 try
                 {
-                    Par par = new Par(args[0], 6969);
+                    Par par = new Par(args[0], 6868);
+
+                    createShutDownHook(par);
+
                     par.setIpParesConectados(par.getClienteTracker().getIpsEnxame());
                     par.conectaComPares();
                     par.esperaConexoes();
@@ -53,5 +59,17 @@ public class Main
                 }
             }
         }
+    }
+
+    private static void createShutDownHook(Par par)
+    {
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                par.getClienteTracker().retirarMeuIp();
+            }
+        }));
     }
 }

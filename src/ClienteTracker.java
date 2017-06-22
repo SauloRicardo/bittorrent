@@ -1,5 +1,8 @@
 import java.io.IOException;
-import java.net.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,6 +20,7 @@ public class ClienteTracker
     private byte[] bufferSaida;
     private static int timeOut;
     private int portPar;
+    private static int contTime;
 
     ClienteTracker(String ipTracker, int portTracker, int portPar) throws Exception
     {
@@ -26,24 +30,32 @@ public class ClienteTracker
         ClienteTracker.timeOut = 0;
         this.bufferEntrada = new byte[2048];
         this.portPar = portPar;
+        contTime = 0;
     }
 
-    private void receiveRequest(DatagramPacket packetSend, DatagramPacket packetReceive)
+    private int receiveRequest(DatagramPacket packetSend, DatagramPacket packetReceive)
     {
-        try
+        int cont = 0;
+        while(cont < 4)
         {
-            socket.send(packetSend);
-            socket.setSoTimeout((15 * (int) Math.pow(2, timeOut))*10);
-            socket.receive(packetReceive);
+            try
+            {
+                socket.send(packetSend);
+                socket.setSoTimeout((15 * (int) Math.pow(2, timeOut)) * 10);
+                socket.receive(packetReceive);
+                return 0;
+            }
+            catch(SocketTimeoutException e)
+            {
+                ClienteTracker.timeOut++;
+            }
+            catch(IOException e)
+            {
+                e.printStackTrace();
+            }
+            cont++;
         }
-        catch(SocketTimeoutException e)
-        {
-            ClienteTracker.timeOut++;
-            receiveRequest(packetSend, packetReceive);
-        } catch(IOException e)
-        {
-            e.printStackTrace();
-        }
+        return -1;
     }
 
     private List<String> geraListaIps(String ips)
@@ -63,11 +75,25 @@ public class ClienteTracker
 
         DatagramPacket resposta = new DatagramPacket(this.bufferEntrada, this.bufferEntrada.length);
 
-        receiveRequest(request, resposta);
+        if(receiveRequest(request, resposta) != 0)
+            return new ArrayList<>();
 
         String dadosResposta = new String(resposta.getData()).trim();
 
         return geraListaIps(dadosResposta);
+    }
+
+    public void retirarMeuIp()
+    {
+        String dados = "RETIRAR\t"+portPar;
+        this.bufferSaida = dados.getBytes();
+
+        DatagramPacket request = new DatagramPacket(this.bufferSaida, this.bufferSaida.length, trackerIp, portTracker);
+        DatagramPacket resposta = new DatagramPacket(this.bufferEntrada, this.bufferEntrada.length);
+
+        receiveRequest(request, resposta);
+
+        String dadosResposta = new String(resposta.getData()).trim();
     }
 
 }

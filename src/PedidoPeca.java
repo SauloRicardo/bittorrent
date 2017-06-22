@@ -5,21 +5,21 @@ import java.io.Serializable;
  */
 public class PedidoPeca implements Serializable
 {
-    private String pedido;
+    private short pedido;
     private Conjunto<Integer> pecasFaltantes;
 
-    PedidoPeca(String pedido, Conjunto<Integer> pecas)
+    PedidoPeca(short pedido, Conjunto<Integer> pecas)
     {
         this.pedido = pedido;
         this.pecasFaltantes = pecas;
     }
 
-    public String getPedido()
+    public short getPedido()
     {
         return pedido;
     }
 
-    public void setPedido(String pedido)
+    public void setPedido(short pedido)
     {
         this.pedido = pedido;
     }

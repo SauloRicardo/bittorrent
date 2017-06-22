@@ -1,8 +1,8 @@
+import java.io.EOFException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -15,19 +15,31 @@ public class SessaoServidor implements Runnable
     private byte[][] pecas;
     private String[] pecasHash;
     private Socket socket;
-    private Conjunto<Integer> pecasFaltantes;
+    private Conjunto<Integer> pecasFaltantesCliente;
     private Conjunto<Integer> pecasObtidas;
     private Semaphore semaphore;
 
-    SessaoServidor(byte[][] pecas, String[] hash, Socket socket, Conjunto<Integer> pecasFaltantes,
-                  Conjunto<Integer> pecasObtidas, Semaphore semaphore)
+    private ObjectOutputStream saida;
+    private ObjectInputStream entrada;
+
+    private boolean terminar;
+    private int contEnviosInvalidos;
+
+    SessaoServidor(byte[][] pecas, String[] hash, Socket socket,
+                  Conjunto<Integer> pecasObtidas, Semaphore semaphore, ObjectOutputStream saida, ObjectInputStream entrada)
     {
         this.pecas = pecas;
         this.pecasHash = hash;
         this.socket = socket;
-        this.pecasFaltantes = pecasFaltantes;
+        this.pecasFaltantesCliente = new Conjunto<>();
         this.pecasObtidas = pecasObtidas;
         this.semaphore = semaphore;
+
+        this.entrada = entrada;
+        this.saida = saida;
+
+        this.terminar = false;
+        this.contEnviosInvalidos = 9;
     }
 
     synchronized int escolhePecaEnviar(Conjunto<Integer> pecasFaltantesCliente)
@@ -40,30 +52,56 @@ public class SessaoServidor implements Runnable
 
         int pecaId = ThreadLocalRandom.current().nextInt(0, pecasId.length);
 
-        return (Integer) pecasId[pecaId];
+        int pecaEnviar = (Integer) pecasId[pecaId];
+
+        pecasFaltantesCliente.remove(pecaEnviar);
+
+        return pecaEnviar;
     }
 
     synchronized void enviaPeca() throws Exception
     {
-        ObjectOutputStream saida = new ObjectOutputStream(socket.getOutputStream());
-        ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
+        //ObjectOutputStream saida = new ObjectOutputStream(socket.getOutputStream());
+        //ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
 
         Object pedido = entrada.readObject();
         if(pedido instanceof PedidoPeca)
         {
             PedidoPeca pedidoPeca = (PedidoPeca) pedido;
 
-            int idPeca = escolhePecaEnviar(pedidoPeca.getPecasFaltantes());
+            if(pedidoPeca.getPedido() == Utils.SET_PIECE)
+            {
+                this.pecasFaltantesCliente = pedidoPeca.getPecasFaltantes();
+                System.out.println("\t[DEBUG SERVIDOR]: Atualizou a lista de pecas");
+            }
+
+            int idPeca = escolhePecaEnviar(this.pecasFaltantesCliente);
 
             EnvioPeca envioPeca;
 
             if(idPeca == -1)
-                envioPeca = new EnvioPeca(-1, new byte[1]);
+            {
+                envioPeca = new EnvioPeca(Utils.PIECE_FALTANTE, new byte[1]);
+                contEnviosInvalidos++;
+            }
             else
+            {
                 envioPeca = new EnvioPeca(idPeca, pecas[idPeca]);
+                contEnviosInvalidos = 0;
+            }
+
+            if(pecasFaltantesCliente.isEmpty() && contEnviosInvalidos == 10)
+            {
+                terminar = true;
+                envioPeca = new EnvioPeca(Utils.FECHAR_SESSA0, new byte[1]);
+            }
 
             saida.writeObject(envioPeca);
             System.out.println("ENVIA PECA: Enviou a peca "+idPeca+" para "+socket.getInetAddress()+" "+socket.getPort());
+        }
+        else
+        {
+            System.out.println("\t\t[DEBUG SERVIDOR]: Classe Inválida - Recebido: "+pedido.getClass());
         }
     }
 
@@ -74,10 +112,15 @@ public class SessaoServidor implements Runnable
         {
             try
             {
+                if(terminar)
+                {
+                    System.out.println("TERMINANDO SERVIDOR.......");
+                    break;
+                }
                 semaphore.acquire();
                 enviaPeca();
             }
-            catch(SocketException e)
+            catch(SocketException | EOFException e)
             {
                 System.out.println("Par "+socket.getInetAddress()+"-"+socket.getPort()+" desconectado");
                 semaphore.release();

@@ -62,6 +62,14 @@ public class Tracker implements Runnable
             this.listaIps.add(add);
     }
 
+    public void retirarPar(InetAddress end, int port)
+    {
+        String remove = end.getHostAddress();
+        remove = remove + "-" + port;
+
+        this.listaIps.remove(remove);
+    }
+
     public String getIps()
     {
         String ret = "";
@@ -109,7 +117,20 @@ public class Tracker implements Runnable
 
                 this.adicionarPar(endCliente, portPar);
             }
+            else if(dados.contains("RETIRAR"))
+            {
+                int portPar = Integer.parseInt(dados.split("\t")[1]);
 
+                this.retirarPar(endCliente, portPar);
+
+                String okRemove = "OK";
+                bufferSaida = okRemove.getBytes();
+
+                resposta = new DatagramPacket(bufferSaida, bufferSaida.length, endCliente, portCliente);
+                socket.send(resposta);
+
+                System.out.println("TRACKER - Enviou a resposta para "+endCliente+"-"+portCliente);
+            }
         }
     }
 
