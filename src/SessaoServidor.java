@@ -7,7 +7,10 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Created by arthur on 17/06/17.
+ * Created on 17/06/17.
+ * Arthur Alexsander Martins Teodoro - 0022427
+ * Saulo Ricardo Dias Fernandes - 0021581
+ * Wesley Henrique Batista Nunes - 0021622
  * classe para controle da thread que envia as pecas
  */
 public class SessaoServidor implements Runnable
@@ -61,8 +64,6 @@ public class SessaoServidor implements Runnable
 
     synchronized void enviaPeca() throws Exception
     {
-        //ObjectOutputStream saida = new ObjectOutputStream(socket.getOutputStream());
-        //ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
 
         Object pedido = entrada.readObject();
         if(pedido instanceof PedidoPeca)
@@ -72,7 +73,6 @@ public class SessaoServidor implements Runnable
             if(pedidoPeca.getPedido() == Utils.SET_PIECE)
             {
                 this.pecasFaltantesCliente = pedidoPeca.getPecasFaltantes();
-                System.out.println("\t[DEBUG SERVIDOR]: Atualizou a lista de pecas");
             }
 
             int idPeca = escolhePecaEnviar(this.pecasFaltantesCliente);
@@ -98,10 +98,6 @@ public class SessaoServidor implements Runnable
 
             saida.writeObject(envioPeca);
             System.out.println("ENVIA PECA: Enviou a peca "+idPeca+" para "+socket.getInetAddress()+" "+socket.getPort());
-        }
-        else
-        {
-            System.out.println("\t\t[DEBUG SERVIDOR]: Classe Inválida - Recebido: "+pedido.getClass());
         }
     }
 

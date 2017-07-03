@@ -1,7 +1,11 @@
 import java.io.Serializable;
 
 /**
- * Created by arthur on 17/06/17.
+ * Created on 17/06/17.
+ * Arthur Alexsander Martins Teodoro - 0022427
+ * Saulo Ricardo Dias Fernandes - 0021581
+ * Wesley Henrique Batista Nunes - 0021622
+ * Classe correspondente ao pacote de pedido de uma peca
  */
 public class PedidoPeca implements Serializable
 {

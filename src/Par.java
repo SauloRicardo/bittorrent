@@ -8,7 +8,10 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 
 /**
- * Created by arthur on 17/06/17.
+ * Created on 17/06/17.
+ * Arthur Alexsander Martins Teodoro - 0022427
+ * Saulo Ricardo Dias Fernandes - 0021581
+ * Wesley Henrique Batista Nunes - 0021622
  * classe para controle do par
  */
 public class Par

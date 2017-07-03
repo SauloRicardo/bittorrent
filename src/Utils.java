@@ -12,7 +12,10 @@ import java.util.Enumeration;
 import java.util.Formatter;
 
 /**
- * Created by arthur on 02/06/17.
+ * Created on 02/06/17.
+ * Arthur Alexsander Martins Teodoro - 0022427
+ * Saulo Ricardo Dias Fernandes - 0021581
+ * Wesley Henrique Batista Nunes - 0021622
  * classe com códigos que poderam ser utilizados várias vezes
  */
 public class Utils
@@ -44,12 +47,6 @@ public class Utils
         if(end > bytes.length)
             end = bytes.length;
         byte[] piece = new byte[end-begin];
-        int index = 0;
-        /*for(int i = begin; i < end; i++)
-        {
-            piece[index] = bytes[i];
-            index++;
-        }*/
         System.arraycopy(bytes, begin, piece, 0, piece.length);
         return piece;
     }

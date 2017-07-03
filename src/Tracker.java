@@ -5,7 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by arthur on 02/06/17.
+ * Created on 02/06/17.
+ * Arthur Alexsander Martins Teodoro - 0022427
+ * Saulo Ricardo Dias Fernandes - 0021581
+ * Wesley Henrique Batista Nunes - 0021622
  * classe do tracker - servidor udp que recebera requisicao sempre que um par
  * quer entrar para um enxame
  */

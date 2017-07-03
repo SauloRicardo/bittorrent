@@ -8,7 +8,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Created by arthur on 03/06/17.
+ * Created on 03/06/17.
+ * Arthur Alexsander Martins Teodoro - 0022427
+ * Saulo Ricardo Dias Fernandes - 0021581
+ * Wesley Henrique Batista Nunes - 0021622
  * classe que realizará a comunicacao com o tracker
  */
 public class ClienteTracker

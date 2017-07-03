@@ -1,5 +1,8 @@
 /**
- * Created by arthur on 07/06/17.
+ * Created on 07/06/17.
+ * Arthur Alexsander Martins Teodoro - 0022427
+ * Saulo Ricardo Dias Fernandes - 0021581
+ * Wesley Henrique Batista Nunes - 0021622
  * classe principal do programa, com o código cli
  */
 public class Main
@@ -45,7 +48,8 @@ public class Main
             {
                 try
                 {
-                    Par par = new Par(args[0], 6868);
+                	//============ caso executando na mesma maquina alterar somente aqui o numero do porto ============
+                    Par par = new Par(args[0], 6969);
 
                     createShutDownHook(par);
 

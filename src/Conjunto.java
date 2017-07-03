@@ -3,7 +3,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
- * Created by arthur on 17/06/17.
+ * Created on 17/06/17.
+ * Arthur Alexsander Martins Teodoro - 0022427
+ * Saulo Ricardo Dias Fernandes - 0021581
+ * Wesley Henrique Batista Nunes - 0021622
  * Classe de conjunto
  */
 public class Conjunto<T> implements Serializable

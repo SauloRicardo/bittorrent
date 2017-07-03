@@ -5,7 +5,10 @@ import java.net.SocketException;
 import java.util.concurrent.Semaphore;
 
 /**
- * Created by arthur on 17/06/17.
+ * Created on 17/06/17.
+ * Arthur Alexsander Martins Teodoro - 0022427
+ * Saulo Ricardo Dias Fernandes - 0021581
+ * Wesley Henrique Batista Nunes - 0021622
  * Classe para sessao que pede as pecas
  */
 public class SessaoCliente implements Runnable
@@ -57,10 +60,6 @@ public class SessaoCliente implements Runnable
             this.pecasObtidas.add(id);
             System.out.println("PEDE PECA: Recebeu a peca "+id+" em ordem de "+socket.getInetAddress()+" "+socket.getPort());
         }
-        else
-        {
-            System.out.println("PEDE PECA: Falha ao pegar a peca");
-        }
     }
 
     synchronized private void pedePeca() throws Exception
@@ -71,7 +70,6 @@ public class SessaoCliente implements Runnable
         {
             pedidoPeca = new PedidoPeca(Utils.SET_PIECE, pecasFaltantes);
             timeOutReevio = 50;
-            System.out.println("\t[DEBUG CLIENTE]: Reenviou a lista de pecas");
         }
         else
             pedidoPeca = new PedidoPeca(Utils.GET_PIECE, null);
@@ -92,15 +90,12 @@ public class SessaoCliente implements Runnable
 
             if(pecasFaltantes.isEmpty() && !seeder  && !arquivoEscrito)
             {
+                long t1 = System.currentTimeMillis();
                 Utils.escreveArquivo(nomeArquivo, pecas);
                 seeder = true;
                 arquivoEscrito = true;
             }
             timeOutReevio--;
-        }
-        else
-        {
-            System.out.println("\t\t[DEBUG CLIENTE]: Classe Inválida - Recebido: "+resposta.getClass());
         }
     }
 
